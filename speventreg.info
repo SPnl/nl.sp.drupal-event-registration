@@ -1,0 +1,11 @@
+name = SP Evenementregistratie
+description = Views en formulieren om bij bijeenkomsten ter plekke de aanwezigheid te registreren
+version = 1.0
+core = 7.x
+package = sprbs
+
+dependencies[] = civicrm
+dependencies[] = views_access_callback
+
+files[] = speventreg.module
+files[] = speventreg.civicrm.inc

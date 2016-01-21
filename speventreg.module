@@ -1,0 +1,93 @@
+<?php
+/**
+ * nl.sp.drupal-event-registration
+ * Views en formulieren voor het live registreren van bezoekers tijdens een evenement.
+ */
+
+/**
+ * Implements hook_views_api.
+ * @return array API version
+ */
+function speventreg_views_api() {
+  return ['api' => 3.0];
+}
+
+/**
+ * Implements hook_views_default_views. Laadt alle views uit de /views/ directory.
+ * @return array Views
+ */
+function speventreg_views_default_views() {
+  civicrm_initialize();
+  $files = file_scan_directory(drupal_get_path('module', 'speventreg') . '/views', '/.inc/');
+  $views = [];
+  foreach ($files as $filepath => $file) {
+    $view = FALSE;
+    require $filepath;
+    if (!empty($view)) {
+      $views[ $view->name ] = $view;
+    }
+  }
+
+  return $views;
+}
+
+/**
+ * Implements hook_menu().
+ * Voegt calls toe om deelnemers toe te voegen / te vervangen / te verwijderen.
+ */
+function speventreg_menu() {
+
+  $items = [];
+  $items['evenementregistratie/status/%/%'] = [
+    'title'           => 'Deelnemerstatus wijzigen',
+    'type'            => MENU_CALLBACK,
+    'page callback'   => 'speventreg_participant_status',
+    'access callback' => 'speventreg_check_access',
+  ];
+  $items['evenementregistratie/edit/%/%/%'] = [
+    'title'           => 'Deelnemer vervangen',
+    'type'            => MENU_CALLBACK,
+    'page callback'   => 'speventreg_participant_edit',
+    'access callback' => 'speventreg_check_access',
+  ];
+  $items['evenementregistratie/autocomplete'] = [
+    'title'           => 'Autocomplete deelnemers/leden',
+    'type'            => MENU_CALLBACK,
+    'page callback'   => 'speventreg_participant_autocomplete',
+    'access callback' => 'speventreg_check_access',
+  ];
+
+  return $items;
+}
+
+/**
+ * Access check of een gebruiker toegang heeft tot deze module en het overzicht van evenementen.
+ * Voor nu houden we het lekker simpel... alleen toegang voor admins.
+ * @return bool Has access
+ */
+function speventreg_check_access() {
+  global $user;
+  $access = user_access('administer CiviCRM') || in_array('administrator', $user->roles);
+
+  return $access;
+}
+
+/**
+ * Deelnemersstatus voor een evenement wijzigen
+ * @param int $event_id Event ID
+ * @param int $participant_id Participant ID
+ * @param int $status_id Status ID (zoals geconfigureerd in /civicrm/admin/participant/status)
+ */
+function speventreg_participant_status($event_id, $participant_id, $status_id) {
+  // TODO
+}
+
+/**
+ * Deelnemer voor een evenement vervangen door een andere deelnemer
+ * @param int $event_id Event ID
+ * @param int $participant_id Participant ID
+ * @param int $new_participant_id New participant ID
+ */
+function speventreg_participant_edit($event_id, $participant_id, $new_participant_id) {
+  // TODO
+}

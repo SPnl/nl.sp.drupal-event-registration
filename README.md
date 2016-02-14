@@ -6,8 +6,7 @@ ter plekke digitaal de aanwezigheid van deelnemers te registreren, nieuwe deelne
 te laten vervangen. 
 
 Deze module is in ontwikkeling. Geplande opzet (tevens TODO):
-- Eén overzichtsformulier (dat moet dus helemaal geen view zijn) waarop de gebruiker 
-  een of meer evenementen kan selecteren.
+- Eén overzichtsformulier waarop de gebruiker een of meer evenementen kan selecteren.
 - Een detailpagina die de aangemelde deelnemers voor deze evenementen toont.
 - Naast de gegevens van iedere deelnemer zit een knop Vervangen en een knop Afmelden, die (bij voorkeur via ajax)
   de betreffende handeling uitvoeren.

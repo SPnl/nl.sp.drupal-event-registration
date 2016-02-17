@@ -17,15 +17,18 @@ function speventreg_page_overview() {
  */
 function speventreg_form_overview($form, &$form_state) {
 
+  /** @var \SPEventreg_Civi $spcivi */
+  $spcivi = \SPEventreg_Civi::getInstance();
+
   $form = [
-    '#prefix' => '<div class="content" id="eventreg_form"><p>Vink één of meer evenementen aan waarvoor je de deelnemers wilt registreren.</p>',
-    '#suffix' => '</div>',
+    '#prefix' => '<div class="content" id="eventreg_form"><p>Vink één of meer bijeenkomsten aan waarvoor je de aanwezigheid wilt registreren.</p>',
+    '#suffix' => '<hr /></div>',
   ];
 
   $form['events'] = [
     '#type'    => 'checkboxes',
-    '#options' => speventreg_civi_eventkv(),
-    '#default_value' => (!empty($_SESSION['speventreg_event_ids']) ? $_SESSION['speventreg_event_ids'] : null),
+    '#options' => $spcivi->getEventKV(),
+    '#default_value' => (!empty($_SESSION['speventreg_event_ids']) ? $_SESSION['speventreg_event_ids'] : []),
   ];
 
   $form['submit'] = [

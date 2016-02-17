@@ -1,0 +1,214 @@
+/**
+ * nl.sp.drupal-event-registration | Custom CSS
+ */
+
+/* General styles */
+
+.page-evenementregistratie-participants .clear {
+    clear: both;
+}
+
+.page-evenementregistratie-participants hr {
+    margin: 0.5em 0 1em 0;
+    clear: both;
+}
+
+.page-evenementregistratie-participants .hide {
+    display: none;
+}
+
+.page-evenementregistratie-participants header .title, .page-evenementregistratie-participants .breadcrumb ul, .page-evenementregistratie-participants .content p, .page-evenementregistratie-participants .content ul, .page-evenementregistratie-participants .content ol, .page-evenementregistratie-participants .content h1, .page-evenementregistratie-participants .content h2, .page-evenementregistratie-participants .content h3, .page-evenementregistratie-participants .content h4, .page-evenementregistratie-participants .content h5, .page-evenementregistratie-participants .content h6, .page-evenementregistratie-participants .content blockquote, .page-evenementregistratie-participants .content form, .page-evenementregistratie-participants .content table, .page-evenementregistratie-participants .content pre, .page-evenementregistratie-participants .content code, .page-evenementregistratie-participants .content dl, .page-evenementregistratie-participants .content dt, .page-evenementregistratie-participants .content .meta {
+    max-width: 1150px !important;
+}
+
+.page-evenementregistratie-participants .content p, .page-evenementregistratie-participants .content ul, .page-evenementregistratie-participants .content ol {
+    font-size: 1rem !important;
+}
+
+/* Page and table layout */
+
+#speventreg-participants {
+    display: table;
+    width: 95%;
+    max-width: 1150px;
+    margin: 1em auto;
+}
+
+#speventreg-participants thead td, #speventreg-participants .bold {
+    font-weight: bold;
+}
+
+#speventreg-participants td {
+    vertical-align: baseline;
+    font-size: 0.9rem;
+    padding: 0.5em;
+}
+
+#speventreg-participants .right, #speventreg-participants .regnr {
+    text-align: right;
+}
+
+#speventreg-participants .right .form-item {
+    text-align: left;
+}
+
+#speventreg-participants .padright {
+    padding-right: 1.5em;
+}
+
+#speventreg-participants a.infolink {
+    color: #333;
+}
+
+#speventreg-participants a.infolink:hover {
+    border-bottom: 2px solid #666;
+}
+
+#speventreg-participants .wait {
+    color: #f60000;
+    font-style: italic;
+}
+
+/* Blokken boven tabel */
+
+.speventreg-blocks {
+    display: block;
+    max-width: 1150px;
+    margin: 0 auto;
+    padding-left: 1.4rem;
+    padding-right: 1.4rem;
+}
+
+#speventreg-eventoverview, #speventreg-eventlinks {
+    margin: 0.5em 0;
+    float: left;
+    box-sizing: border-box;
+    line-height: 28px;
+}
+
+#speventreg-search, #speventreg-new-block {
+    margin: 1rem 0 1.5rem 0;
+}
+
+.speventreg-blocks > div:nth-of-type(1) {
+    width: 70%;
+    padding-right: 3%;
+    float: left;
+    box-sizing: border-box;
+    line-height: 28px;
+}
+
+.speventreg-blocks > div:nth-of-type(2) {
+    width: 30%;
+    text-align: right;
+    float: right;
+    padding-right: 0;
+    box-sizing: border-box;
+    line-height: 28px;
+}
+
+/* Zoekformulier + nieuwe aanmelding */
+
+#speventreg-new {
+    display: none;
+}
+
+#speventreg-search-form, .speventreg-blocks p {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+#speventreg-search-form input[type=text] {
+    width: 45%;
+    line-height: 28px;
+    height: 28px;
+    padding-left: 4px;
+    padding-right: 4px;
+}
+
+#speventreg-search-form input[type=button], #speventreg-search-form input[type=submit] {
+    margin-left: 8px;
+    padding: 4px 4px 2px 4px;
+    height: 28px;
+}
+
+#speventreg-participants .status .fa-check {
+    color: #00c31c !important;
+}
+
+#speventreg-participants .status .fa-question {
+    color: #ffb2b2 !important;
+}
+
+#speventreg-participants .status .fa-times, #speventreg-new .error {
+    color: #f60000 !important;
+}
+
+#speventreg-new .success {
+    color: #009015 !important;
+}
+
+#speventreg-new .success a {
+    color: #009015 !important;
+    text-decoration: underline;
+}
+
+#speventreg-new .success a:hover {
+    border-bottom: none;
+    text-decoration: none;
+}
+
+#speventreg-participants .regnr .fa {
+    color: #666 !important;
+}
+
+#speventreg-new, #speventreg-new form {
+    padding: 0 !important;
+}
+
+#speventreg-new-block.active {
+    float: none;
+    clear: both;
+    width: 100%;
+    text-align: left;
+}
+
+#speventreg-new-block.active label {
+    display: inline-block;
+}
+
+#speventreg-new .form-item {
+    padding: 0;
+}
+
+#speventreg-new .form-submit {
+    float: left;
+    height: 28px;
+    line-height: 28px;
+    padding: 0 .4em;
+}
+
+#speventreg-new input.form-autocomplete, #speventreg-new select {
+    width: 25%;
+    float: left;
+    margin-right: 2%;
+    font-size: 1rem;
+    line-height: 28px;
+    height: 28px;
+    padding: 0 4px;
+    background: #fff;
+    border: #ccc 1px solid;
+}
+
+#speventreg-new-close {
+    display: block;
+    margin: 10px 0 0 26px;
+    font-weight: normal;
+    float: right;
+}
+
+/*
+#speventreg-participants .status .fa, #speventreg-participants .status .fa::before {
+    color: #aaa !important;
+}
+ */

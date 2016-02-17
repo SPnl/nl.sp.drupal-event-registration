@@ -28,40 +28,40 @@ function speventreg_menu() {
     'title'           => 'Deelnemerstatus wijzigen',
     'type'            => MENU_CALLBACK,
     'page callback'   => 'speventreg_page_partstatus',
+    'page arguments'   => [2, 3],
     'access callback' => 'speventreg_check_access',
-    'file'            => 'speventreg.page-partupdate.inc',
-  ];
-  $items['evenementregistratie/add/%/%'] = [
-    'title'           => 'Deelnemer toevoegen',
-    'type'            => MENU_CALLBACK,
-    'page callback'   => 'speventreg_page_partadd',
-    'access callback' => 'speventreg_check_access',
-    'file'            => 'speventreg.page-partupdate.inc',
-  ];
-  $items['evenementregistratie/edit/%/%/%'] = [
-    'title'           => 'Deelnemer vervangen',
-    'type'            => MENU_CALLBACK,
-    'page callback'   => 'speventreg_page_partedit',
-    'access callback' => 'speventreg_check_access',
-    'file'            => 'speventreg.page-partupdate.inc',
+    'file'            => 'speventreg.page-participants.inc',
   ];
   $items['evenementregistratie/autocomplete'] = [
     'title'           => 'Autocomplete deelnemers/leden',
     'type'            => MENU_CALLBACK,
     'page callback'   => 'speventreg_page_autocomplete',
     'access callback' => 'speventreg_check_access',
-    'file'            => 'speventreg.page-partupdate.inc',
+    'file'            => 'speventreg.page-participants.inc',
   ];
 
   return $items;
 }
 
 /**
+ * Implements hook_theme().
+ */
+function speventreg_theme($existing, $type, $theme, $path) {
+  return [
+    'speventreg-tpl-participants' => [
+      'template'  => 'speventreg-tpl-participants',
+      'variables' => ['events' => [], 'participants' => []],
+    ],
+  ];
+}
+
+/**
  * Access check of een gebruiker toegang heeft tot deze module en het overzicht van evenementen.
- * Voor nu houden we het lekker simpel... alleen toegang voor admins.
+ * Voor nu houden we het lekker simpel... alleen toegang voor Drupal- of CiviCRM-admins.
  * @return bool Has access
  */
 function speventreg_check_access() {
+
   global $user;
   $access = user_access('administer CiviCRM') || in_array('administrator', $user->roles);
 

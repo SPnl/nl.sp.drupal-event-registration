@@ -26,9 +26,19 @@ function speventreg_form_overview($form, &$form_state) {
   ];
 
   $form['events'] = [
-    '#type'    => 'checkboxes',
-    '#options' => $spcivi->getEventKV(),
+    '#type'          => 'checkboxes',
+    '#options'       => $spcivi->getEventKV(),
     '#default_value' => (!empty($_SESSION['speventreg_event_ids']) ? $_SESSION['speventreg_event_ids'] : []),
+  ];
+
+  $form['location_type'] = [
+    '#title' => 'Toon afdelingen...<br>',
+    '#type'          => 'select',
+    '#options'       => [
+      'geo' => 'Op basis van geostelsel',
+      'rel' => 'Op basis van kaderfunctie',
+    ],
+    '#default_value' => (!empty($_SESSION['speventreg_location_type']) ? $_SESSION['speventreg_location_type'] : ''),
   ];
 
   $form['submit'] = [
@@ -36,6 +46,8 @@ function speventreg_form_overview($form, &$form_state) {
     '#value'      => 'Verder >',
     '#attributes' => ['class' => ['btn', 'submit-btn']],
   ];
+
+  drupal_add_css(drupal_get_path('module', 'speventreg') . '/speventreg.css');
 
   return $form;
 }
@@ -51,5 +63,6 @@ function speventreg_form_overview_validate($form, &$form_state) {
 function speventreg_form_overview_submit($form, &$form_state) {
 
   $_SESSION['speventreg_event_ids'] = array_values(array_filter($form_state['values']['events']));
+  $_SESSION['speventreg_location_type'] = $form_state['values']['location_type'];
   drupal_goto('evenementregistratie/participants');
 }

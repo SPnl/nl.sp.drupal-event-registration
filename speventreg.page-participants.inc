@@ -8,6 +8,8 @@ function speventreg_page_participants() {
 
   // Check session variables
   $event_ids = $_SESSION['speventreg_event_ids'];
+  $location_type = $_SESSION['speventreg_location_type'];
+
   if (!$event_ids || !is_array($event_ids)) {
     drupal_goto('evenementenregistratie');
   }
@@ -24,7 +26,8 @@ function speventreg_page_participants() {
   $spcivi = \SPEventreg_Civi::getInstance();
   $params = [
     'events'       => $spcivi->getEventKV($event_ids),
-    'participants' => $spcivi->getParticipants($event_ids, TRUE),
+    'participants' => $spcivi->getParticipants($event_ids, TRUE, $location_type),
+    'location_type' => $location_type,
   ];
 
   // Add module CSS / JS

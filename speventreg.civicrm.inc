@@ -9,6 +9,25 @@ class SPEventreg_Civi extends \SPCivi {
   /** \SPEventreg_Civi @method getInstance() */
 
   /**
+   * @var array $afdelingen Gecachte array met afdelingen
+   */
+  private $afdelingen = [];
+
+  /**
+   * @var array $relTypes Gecachte array met relationship types
+   */
+  private $relTypes = [];
+
+  /**
+   * Relatietypes die getoond worden op de pagina. Drie groepen: voor iedere groep geldt dat de eerstgevonden functie getoond wordt.
+   * @var array $allowedRelationships Array met sub-arrays met relationship types
+   */
+  private $allowedRelationships = [
+    ['sprel_liddagelijksbestuur_landelijk', 'sprel_partijbestuurslid_landelijk', 'sprel_regiobestuurder_landelijk', 'Waarnemer PB','sprel_tweede_kamerlid_landelijk', 'sprel_eerste_kamerlid_landelijk', 'sprel_europarlementarier_landelijk', 'sprel_personeelslid_amersfoort_landelijk', 'sprel_personeelslid_denhaag_landelijk', 'sprel_personeelslid_brussel_landelijk', 'sprel_bestuurslidrood_landelijk'],
+    ['sprel_voorzitter_afdeling', 'sprel_vervangendvoorzitter_afdeling', 'sprel_organisatiesecretaris_afdeling', 'sprel_penningmeester_afdeling', 'sprel_wethouder_afdeling', 'sprel_statenlid_provincie', 'sprel_gedeputeerde_provincie', 'sprel_fractievoorzitter_afdeling', 'sprel_bestuurslid_afdeling', 'sprel_fractieraadslid_afdeling'],
+  ];
+
+  /**
    * Geeft alle toekomstige evenementen als key-value-array terug
    * @param int|array|null $event_ids Event IDs (optional)
    * @return array Evenementen
@@ -47,10 +66,11 @@ class SPEventreg_Civi extends \SPCivi {
    * Geeft alle deelnemers voor een specifiek event terug
    * @param int|array $event_ids Event ID(s)
    * @param bool $extra Extra data (calls addExtraData to get afdelingsnaam and custom status/role descriptions)
+   * @param string $locationType Type of afdeling-lookup: 'geo' for geostelsel or 'rel' for relationships
    * @return array Participants
    * @throws CiviCRM_API3_Exception Exception
    */
-  public function getParticipants($event_ids = [], $extra = FALSE) {
+  public function getParticipants($event_ids = [], $extra = FALSE, $locationType = 'geo') {
 
     if (is_array($event_ids)) {
       $event_ids = array_values($event_ids);
@@ -78,7 +98,7 @@ class SPEventreg_Civi extends \SPCivi {
 
     // Add extra data if $extra is true
     if ($extra) {
-      $participants = $this->addExtraData($participants);
+      $participants = $this->addExtraData($participants, $locationType);
     }
 
     return $participants;
@@ -87,9 +107,10 @@ class SPEventreg_Civi extends \SPCivi {
   /**
    * Voegt extra data (status/rol-informatie en afdeling) toe aan een array met participant-records
    * @param array $participants Participants
+   * @param string $locationType Type of afdeling-lookup: 'geo' for geostelsel or 'rel' for relationships
    * @return array Enriched participants array
    */
-  private function addExtraData($participants) {
+  private function addExtraData($participants, $locationType = 'geo') {
 
     // Status / rolinformatie opvragen, en vervolgens acties toevoegen en statusnamen aanpassen
     $statuses = $this->getAvailableStatuses();
@@ -122,17 +143,8 @@ class SPEventreg_Civi extends \SPCivi {
       $p['participant_role_this'] = $roles[ $p['participant_role_id'] ];
     }
 
-    // Afdelings-ids/namen erbij halen, op basis van 1 request met de contact_ids.
-    // We doen voor nu de afdeling uit het geostelsel en niet de relatie, zodat het voor álle events bruikbaar is.
-    // (Ik wilde dit eerst als een chained call doen, en dat kán ook. Maar dat blijkt gewoon N+1, zucht.
-    //  Iets met 'api.contact.getsingle' => ['contact_id' => '$value.contact_id'] schiet dus niet op.)
-
     // Afdelingscontacten ophalen
-    $afdelingen = $this->api('Contact', 'get', [
-      'contact_sub_type' => 'SP_Afdeling',
-      'option.limit'     => 1000,
-    ]);
-    $afdelingen_kv = array_column($afdelingen['values'], 'display_name', 'contact_id');
+    $afdelingen_kv = $this->getAfdelingenKV();
 
     // Contactinfo ophalen obv contact-ids
     $contactIds = array_column($participants, 'contact_id');
@@ -144,23 +156,75 @@ class SPEventreg_Civi extends \SPCivi {
       'option.limit' => 1000,
     ]);
 
+    if ($locationType == 'rel') {
+      $relTypes = $this->getRelationshipTypes();
+      $allowedRelTypes = $this->getAllowedRelationshipsKV();
+      $crelinfo = $this->api('Relationship', 'get', [
+        'sequential'           => FALSE,
+        'is_active'            => 1,
+        'contact_id_a'         => ['IN' => $contactIds],
+        'relationship_type_id' => ['IN' => array_keys($allowedRelTypes)],
+        'option.limit'         => 1000,
+      ]);
+      $relationships = [];
+      foreach ($crelinfo['values'] as $crow) {
+        if (!isset($relationships[ $crelinfo['contact_id_a'] ])) {
+          $relationships[ $crelinfo['contact_id_a'] ] = [];
+        }
+        $crow['name_a_b'] = $relTypes[ $crow['relationship_type_id'] ]['name_a_b'];
+        $crow['label_a_b'] = $relTypes[ $crow['relationship_type_id'] ]['label_a_b'];
+        $relationships[ $crow['contact_id_a'] ][ $crow['name_a_b'] . '_' . $crow['contact_id_b'] ] = $crow;
+      }
+    }
+
     // Array verrijken met de contactdata, en deze teruggeven
     if (!$contacts['is_error'] && $contacts['count'] > 0) {
       foreach ($participants as &$p) {
+
         if (!array_key_exists($p['contact_id'], $contacts['values'])) {
           continue;
         }
-
-        $crec = $contacts['values'][ $p['contact_id'] ];
+        
+        $crec = &$contacts['values'][ $p['contact_id'] ];
+        $crel = &$relationships[ $p['contact_id'] ];
         $p['sort_name_this'] = trim($crec['last_name'] . ', ' . $crec['first_name'] . ' ' . $crec['middle_name']);
-        $p['afdeling_id'] = $crec[ $afdelingField ];
 
-        $afdnaam = $afdelingen_kv[ $crec[ $afdelingField ] ];
-        if ($afdnaam) {
-          $afdnaam = str_replace(['SP-afdeling ', 'SP-regio ', 'SP-werkgroep '], '', $afdnaam);
-          $p['afdeling_name'] = $afdnaam;
+        // Locatienaam - beetje lang blok, toont een selectie van functies in 'rel'-modus, of de woonafdeling in 'geo'-modus
+        if ($locationType == 'rel') {
+          // Type rel
+          if (isset($crel) && count($crel) > 0) {
+            $location = [];
+            foreach ($this->allowedRelationships as $allowedGroup) {
+              foreach ($allowedGroup as $allowedName) {
+                foreach ($crel as $rel) {
+                  if ($rel['name_a_b'] != $allowedName || isset($location[$rel['contact_id_b']])) {
+                    continue;
+                  }
+
+                  $location[$rel['contact_id_b']] = $rel['label_a_b'] . (array_key_exists($rel['contact_id_b'], $afdelingen_kv) ? ' ' . $afdelingen_kv[ $rel['contact_id_b'] ] : '');
+                }
+              }
+            }
+
+            if(count($location) > 0) {
+              $location = implode("<br>\n", $location);
+            } else {
+              $location = '-';
+            }
+          } else {
+            $location = '[Geen, woonafdeling: ' . $afdelingen_kv[ $crec[ $afdelingField ] ] . ']';
+          }
         } else {
-          $p['afdeling_name'] = '-';
+          // Type geo
+          $location = $afdelingen_kv[ $crec[ $afdelingField ] ];
+        }
+
+        if (!empty($location)) {
+          $location = str_replace(['SP-afdeling ', 'SP-regio ', 'SP-werkgroep ', 'afd '], '', $location);
+          $location = str_replace(['Tweede Kamerfractie', 'Europese fractie', 'Personeelslid', 'Organisatiesecretaris'], ['Kamerfractie', 'Brussel', 'Personeel', 'Organisatiesecretaris', ''], $location);
+          $p['location'] = $location;
+        } else {
+          $p['location'] = '-';
         }
       }
     }
@@ -193,9 +257,10 @@ class SPEventreg_Civi extends \SPCivi {
    */
   public function getParticipant($event_id, $contact_id, $role_id) {
     try {
-      $participant = $this->api('Participant', 'getsingle', ['event_id'   => $event_id,
-                                                             'contact_id' => $contact_id,
-                                                             'role_id'    => $role_id,
+      $participant = $this->api('Participant', 'getsingle', [
+        'event_id'   => $event_id,
+        'contact_id' => $contact_id,
+        'role_id'    => $role_id,
       ]);
 
       return $participant['participant_id'];
@@ -228,6 +293,7 @@ class SPEventreg_Civi extends \SPCivi {
       ]);
     } catch (\CiviCRM_API3_Exception $e) {
       drupal_set_message('Kon deelnemer niet aanmelden: ' . $e->getMessage(), 'error');
+
       return FALSE;
     }
   }
@@ -246,6 +312,77 @@ class SPEventreg_Civi extends \SPCivi {
    */
   public function getAvailableStatuses() {
     return \CRM_Event_PseudoConstant::participantStatus();
+  }
+
+  /**
+   * Haalt alle contacten van het type SP_Afdeling op en cached deze.
+   * @return array Alle afdelingen
+   */
+  private function getAfdelingen() {
+    if (count($this->afdelingen) == 0) {
+      $afdelingen = $this->api('Contact', 'get', [
+        'contact_sub_type' => 'SP_Afdeling',
+        'option.limit'     => 1000,
+      ]);
+      if ($afdelingen['is_error']) {
+        return FALSE;
+      }
+
+      $this->afdelingen = $afdelingen['values'];
+    }
+
+    return $this->afdelingen;
+  }
+
+  /**
+   * Geeft een K/V-array terug met alle afdelingen
+   * @return array Alle afdelingen als K/V-array
+   */
+  private function getAfdelingenKV() {
+    $afdelingen = $this->getAfdelingen();
+
+    return array_column($afdelingen, 'display_name', 'contact_id');
+  }
+
+  /**
+   * Haalt alle relatietypes op en cached deze.
+   * @return array All relationship types
+   */
+  private function getRelationshipTypes() {
+    if (count($this->relTypes) == 0) {
+      $relTypes = $this->api('RelationshipType', 'get', [
+        'sequential'   => FALSE,
+        'is_active'    => 1,
+        'option.limit' => 1000,
+      ]);
+      if ($relTypes['is_error']) {
+        return FALSE;
+      }
+
+      $this->relTypes = $relTypes['values'];
+    }
+
+    return $this->relTypes;
+  }
+
+  /**
+   * Retourneert relatietypes die gebruikt worden om een contact te koppelen aan een afdeling.
+   * @return array Allowed relationship types (as K/V)
+   */
+  public function getAllowedRelationshipsKV() {
+
+    $relTypes = $this->getRelationshipTypes();
+    $ret = [];
+
+    foreach ($relTypes as $r) {
+      foreach ($this->allowedRelationships as $set) {
+        if (in_array($r['name_a_b'], $set)) {
+          $ret[ $r['id'] ] = $r['name_a_b'];
+        }
+      }
+    }
+
+    return $ret;
   }
 
 }

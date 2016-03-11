@@ -181,11 +181,18 @@
     padding: 0;
 }
 
-#speventreg-new .form-submit {
-    float: left;
+#speventreg-form-overview .checkboxes, #speventreg-form-overview .form-type-select {
+    margin-bottom: 20px;
+}
+
+#speventreg-form-overview .form-submit {
     height: 28px;
     line-height: 28px;
     padding: 0 .4em;
+}
+
+#speventreg-new .form-submit {
+    float: left;
 }
 
 #speventreg-new input.form-autocomplete, #speventreg-new select {

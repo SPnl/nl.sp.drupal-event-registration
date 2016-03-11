@@ -19,7 +19,7 @@
 
     <div id="speventreg-eventlinks">
       <p>
-        <a href="/evenementregistratie" class="rood"><i class="fa fa-fw fa-pencil"></i> Evenementen wijzigen</a><br/>
+        <a href="/evenementregistratie" class="rood"><i class="fa fa-fw fa-pencil"></i> Instellingen wijzigen</a><br/>
         <br/>
         <a href="#" class="rood speventreg-refresh"><i class="fa fa-fw fa-refresh"></i> Lijst verversen</a>
       </p>
@@ -69,7 +69,7 @@
       <tr>
         <td>Regnr</td>
         <td>Deelnemer</td>
-        <td>Afdeling</td>
+        <td><?=($location_type == 'rel' ? 'Kaderfunctie + afdeling' : 'Woonafdeling');?></td>
         <td class="mright">Status</td>
         <td class="mright">Rol</td>
         <td>Evenement</td>
@@ -77,16 +77,18 @@
       </tr>
       </thead>
       <tbody>
-      <?php foreach ($participants as $p): ?>
+      <?php foreach ($participants as $p):
+        $is_double = (is_array($prev) && $prev['contact_id'] == $p['contact_id']);
+        ?>
         <tr
-          data-searchdata="<?= strtolower($p['contact_id'] . ' ' . $p['display_name'] . ' ' . $p['afdeling_name']); ?>"
+          data-searchdata="<?= strtolower($p['contact_id'] . ' ' . $p['display_name'] . ' ' . $p['location']); ?>"
           data-pid="<?= $p['participant_id']; ?>">
           <td class="regnr">
-            <?php if (empty($prev) || $prev['contact_id'] != $p['contact_id']): ?>
+            <?php if ($is_double): ?>
+              <i class="fa fa-level-up fa-flip-horizontal"></i> <i class="fa fa-fw fa-exclamation-circle"></i>
+            <?php else: ?>
               <a class="infolink" href="/civicrm/contact/view?reset=1&cid=<?= $p['contact_id']; ?>" target="_blank">
                 <?= $p['contact_id']; ?></a>
-            <?php else: ?>
-              <i class="fa fa-level-up fa-flip-horizontal"></i> <i class="fa fa-fw fa-exclamation-circle"></i>
             <?php endif; ?>
           </td>
           <td class="bold">
@@ -94,7 +96,7 @@
                href="/civicrm/contact/view/participant?reset=1&id=<?= $p['participant_id']; ?>&cid=<?= $p['contact_id']; ?>&action=view&context=participant"
                target="_blank"><?= $p['sort_name_this']; ?></a>
           </td>
-          <td class="nowrap"><?= $p['afdeling_name']; ?></td>
+          <td><?=($is_double ? '' : $p['location']);?></td>
           <td class="status nowrap padright">
             <?php if ($p['participant_status_this'] == 'Aanwezig'): ?>
               <i class="fa fa-check fa-fw"></i>
@@ -108,13 +110,9 @@
           <td class="nowrap padright"><?= $p['participant_role_this']; ?></td>
           <?php if ($ecount > 1): /* Event title bij meer dan 1 event, zou eventueel ook nog met code kunnen. */ ?>
             <td>
-            <?= str_replace(['Partijraad:', 'gasten en genodigden', 'partijbestuur'], [
-              'PR',
-              'gasten',
-              'PB',
-            ], $p['event_title']); ?>
+            <?= str_replace(['Partijraad:', 'gasten en genodigden', 'partijbestuur'], ['PR', 'gasten', 'PB'], $p['event_title']); ?>
             </td><?php endif; ?>
-          <td>
+          <td class="nowrap">
             <a href='#' class='speventreg-action-status nowrap' data-participantid="<?= $p['participant_id']; ?>"
                data-action="<?= $p['participant_status_action']; ?>">
               <?php if ($p['participant_status_action'] == 'register'): ?>
@@ -143,9 +141,8 @@
     </table>
   <?php endif; ?>
 
-  <p><strong class="speventreg-foot"
-             data-origtxt="Totaal <?= $pcount; ?> geregistreerde deelnemers, waarvan <?= $acount; ?> aanwezig.">
-      Totaal <?= $pcount; ?> geregistreerde deelnemers, waarvan <?= $acount; ?> aanwezig.</strong></p>
+  <p><strong class="speventreg-foot" data-origtxt="Totaal <?= $pcount; ?> geregistreerde deelnemers, waarvan <?= $acount; ?> aanwezig (bij laatste refresh).">
+      Totaal <?= $pcount; ?> geregistreerde deelnemers, waarvan <?= $acount; ?> aanwezig (bij laatste refresh).</strong></p>
 
   <hr/>
 

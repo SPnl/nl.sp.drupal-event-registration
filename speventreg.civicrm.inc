@@ -37,9 +37,10 @@ class SPEventreg_Civi extends \SPCivi {
 
     $params = [
       'sequential' => 1,
-      // 'start_date' => ['>=' => date('Y-m-d')],  // voor live
-      'start_date' => ['>=' => '2016-01-01'],  // voor testen, in combinatie met limiet 1000
-      'options'    => ['sort' => "start_date", 'limit' => 1000],
+      'start_date' => [
+        'BETWEEN' => [date('Y-m-d', time() - 7 * 86400), date('Y-m-d', time() + 14 * 86400)],
+      ], // Show events started recently or starting soon
+      'options'    => ['sort' => "start_date", 'limit' => 100],
       'return'     => "id,title,start_date,end_date",
     ];
 

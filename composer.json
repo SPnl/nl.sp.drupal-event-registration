@@ -1,8 +1,6 @@
-
 {
   "name": "SPnl/nl.sp.drupal-event-registration",
   "description": "Functionaliteit om snel ter plekke deelnemers te registreren bij een evenement",
-  "version": "1.2.1",
   "type": "drupal-module",
   "authors": [
     {
